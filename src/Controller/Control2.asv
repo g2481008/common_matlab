@@ -1,0 +1,31 @@
+classdef Control2 < handle
+    %UNTITLED4 このクラスの概要をここに記述
+    %   詳細説明をここに記述
+
+    properties
+        Plant
+        obs
+        W
+        Q = 100
+        controller
+    end
+
+    methods
+        function obj = Control2(a,b)
+            obj.W = a + b;
+            obj.controller = controllerPurePursuit(DesiredLinearVelocity=0.02,LookaheadDistance=0.3,Waypoints=[1,0;2,0]);
+        end
+
+        function result = main(obj,data)
+            obj.W = obj.W+obj.Q/1;
+            obj.controller
+
+
+            % a = 0.05+rand*0.1;
+            % pause(0.1) % 制御の処理時間
+            % result = data;
+            data.V = [0.01;0]; % wheelchair cmd_vel
+            result = data;
+        end
+    end
+end

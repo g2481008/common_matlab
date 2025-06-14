@@ -1,0 +1,130 @@
+function exeControl()
+%%
+clc; close all;
+conf.pc = [ismac; isunix; ispc];
+conf.mk = [":"; ":"; ";"];
+conf.def= "AppData/Local/Temp/Editor";
+conf.usr= "./src";
+conf.fpath = split(path, conf.mk(conf.pc));
+conf.fcheck= and(~contains(conf.fpath, matlabroot), ~contains(conf.fpath, conf.def));
+rmpath(strjoin(conf.fpath(conf.fcheck), conf.mk(conf.pc)));
+addpath(genpath(conf.usr));
+
+Timer = TimeTracker();
+myController = Control2();
+vehicleType = myController.vehicleType;
+isMultiPC = myController.isMultiPC;
+
+% ROS2 TOPIC Configuration
+disp("Setting up ROS2...")
+persistent node
+if isempty(node) || ~isvalid(node)
+    disp("Establishing ROS2 Node...")
+    rosshutdown
+    pause(5)
+    node = ros2node("Matlab",11);
+end
+ros2comm = ROS2CommManager(node,vehicleType);
+[whillPubs,whillMsgs] = ros2comm.genWhillPubs(vehicleType);
+varsub = ros2subscriber(node, ...
+            "/estimation_data0", ...
+            "std_msgs/String");
+
+disp('Control server is awaiting message.');
+while isempty(varsub.LatestMessage)
+end
+EstVar = split(varsub.LatestMessage.data,'.');
+mySavePath = './data';
+mySaveFileName = EstVar{3};
+Datadir = strcat(mySavePath,filesep,string(datetime("now","Format","yyyyMMdd")),filesep,mySaveFileName);
+if exist(Datadir,"dir") ~= 7
+    mkdir(Datadir)
+end
+DL = DataLogger(Datadir,"Control");
+[subs,EstVarName,isNumType] = ros2comm.genContollerSubs(EstVar);
+
+n_EstVar = numel(subs);
+
+Sys = tic;
+k = 1;
+lastSeq = -1;
+CtrlSeq = -1;
+pause(0.05) % Controllerはスタートを遅らせる
+Timer.start();
+while ~strcmp(varsub.LatestMessage.data,'stop')
+    St(k) = toc(Sys);
+    % Estimatorから受信
+    msg = subs{numel(subs)}.LatestMessage; % 最後のsubが受信できていればOK判定
+    if ~isempty(msg) && lastSeq < msg.layout.data_offset  % メッセージ受信(待機)
+        lastSeq = msg.layout.data_offset
+        % まず即座にメッセージを取得
+        lm = cell(1, n_EstVar);
+        for i = 1:n_EstVar
+            lm{i} = subs{i}.LatestMessage;
+        end
+        % EstData代入前にシーケンスを確認
+        seqIdx = zeros(1, n_EstVar, 'uint32');
+        ss = cell(1, n_EstVar);
+        for i = 1:n_EstVar
+            if isNumType(i)
+                VarSize = str2double(split(lm{i}.layout.dim.label,','))';
+                ss{i} = reshape(lm{i}.data, VarSize);
+                seqIdx(i) = lm{i}.layout.data_offset;
+            else
+                strdata = split(lm{i}.data,',');
+                seqIdx(i) = uint32(str2double(strdata{1}));
+                ss{i} = strdata{2};
+            end
+        end
+        % シーケンスにずれが無ければ保存
+        if all(seqIdx == seqIdx(1))
+            EstData = cell2struct(ss, EstVarName, 2);
+        else
+            EstData = [];
+        end
+        
+        
+    else
+        EstData = [];
+    end
+
+    % Control
+    if ~isempty(EstData) && CtrlSeq < EstData.sequence % 時系列が遅れたデータは破棄     
+        CtrlData = myController.main(EstData);
+        CtrlSeq = CtrlData.sequence; % シーケンス更新        
+        % if ~isempty(CtrlData)            
+            CtrlData.T = Timer.elapsed();
+            DL.addData(CtrlData);
+            % 車椅子へ送信
+            whillMsgs.linear.x = double(CtrlData.V(1));
+            whillMsgs.angular.z = double(CtrlData.V(2));
+            send(whillPubs,whillMsgs)
+        % end
+
+    end
+
+
+    SysTime(k) = toc(Sys) - St(k);
+    k = k+1;
+end
+
+DL.stop();
+disp("Saving data...")
+while DL.isDone() == 0
+end
+disp("Done")
+
+% Calculation time
+figure(13)
+plot(St,mean(SysTime)*ones(length(SysTime),1),'-r'); hold on;
+plot(St,SysTime,'b-');
+legend({'Mean','Whole time'})
+
+
+
+end
+
+
+
+
+
