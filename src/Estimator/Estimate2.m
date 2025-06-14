@@ -26,17 +26,24 @@ classdef Estimate2 < handle
         %==========================
         Allxhat % Example
         mode
+        udd
 
 
     end
 
     methods
-        function obj = Estimate2(mode)
+        function obj = Estimate2(mode,OfflinePath)            
             obj.mode = mode;
+            
 
 
             % Send variable type set to Controller
             obj.sendvartype.xhat = 'double'; % example
+            
+            if obj.mode == 1
+                % Load matfile
+                obj.udd = load(OfflinePath);
+            end
 
         end
 

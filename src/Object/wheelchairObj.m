@@ -77,7 +77,7 @@ classdef wheelchairObj < handle
             switch obj.mode
                 case 1 % Offline (No sensor, Use matlab only)
                     disp("Loading mat file...")
-                    Umat = load(obj.OfflinePath);
+                    % Umat = load(obj.OfflinePath);
                     sensorSubs = [];
                     whillSubs = [];
                 case 2 % Gazebo ros2 % Shared memory
@@ -98,6 +98,7 @@ classdef wheelchairObj < handle
                         [pubs,msgs,EstVarName] = obj.ros2comm.genEstimatorPubs(sendvartype,obj.mySaveFileName);
 
                     elseif obj.isParalell && ~obj.isMultiPC % Shared memory
+
                         
                         
                         
