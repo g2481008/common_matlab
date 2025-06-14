@@ -33,7 +33,11 @@ base_sensor = 1; % Standard sensor you use mainly. No standard:0, LiDAR:1, GNSS:
 ts = 0.1; % System execution frequency [s]
 
 mode = 2; % 1: Offline (No communicate), 2:Gazebo simulation(ROS2), 3: Experiment(ROS2)
-OfflinePath = "/home/student/Program/matlab_common/data/20250613/20250613_171110/userLocal.mat"; % Mat file
+if mode == 1
+    OfflinePath = "/home/student/Program/matlab_common/data/20250613/20250613_171110/userLocal.mat"; % Mat file
+else
+    OfflinePath = [];
+end
 
 isParalell = false; % 非同期処理
 isMultiPC = false; % 推定と制御を2台PCで分散処理 (isParalell = 1)
@@ -42,7 +46,7 @@ RID = 17; % ROS Domain ID
 
 
 Timer = TimeTracker();
-myEstimator = Estimate2(mode);
+myEstimator = Estimate2(mode,OfflinePath);
 SF = SensorFetcher(mode);
 obj = wheelchairObj(sensor,myEstimator,SF,Timer,base_sensor,ts,vehicleType,mode,isParalell,isMultiPC,RID,OfflinePath);
 mySavePath = './data';
