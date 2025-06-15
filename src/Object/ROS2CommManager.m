@@ -46,15 +46,17 @@ classdef ROS2CommManager < handle
         node
         vehicleType
         mode
+        sensorIdx
 
 
     end
 
     methods
-        function obj = ROS2CommManager(node,vehicleType,mode)
+        function obj = ROS2CommManager(node,vehicleType,mode,sensorIdx)
             obj.node = node;
             obj.vehicleType = vehicleType;
             obj.mode = mode;
+            obj.sensorIdx = sensorIdx;
         end
 
         function [pubs,msgs,varname] = genEstimatorPubs(obj,info,FileName)  
@@ -108,7 +110,7 @@ classdef ROS2CommManager < handle
             isNum = idx < numel(obj.matlabType)-1;
         end
 
-        function [sensorSubs] = genSensorSubs(obj, sensorIdx)
+        function [sensorSubs] = genSensorSubs(obj)
             if obj.mode == 2 % gazebo
                 m = numel(obj.gSensorTopicSubs);
                 subs = obj.gSensorTopicSubs;
@@ -122,7 +124,7 @@ classdef ROS2CommManager < handle
             end
             sensorSubs = cell(m,1);
             for i = 1:m
-                if sensorIdx(i)
+                if obj.sensorIdx(i)
                     sensorSubs{i} = ros2subscriber(obj.node, ...
                         subs{i},msgs{i}, ...
                         "Reliability",qos.Reliability, ...
@@ -135,7 +137,7 @@ classdef ROS2CommManager < handle
             end
         end
 
-        function [whillSubs] = genWhillSubs(obj, vtype)
+        function [whillSubs] = genWhillSubs(obj)
             if obj.mode == 2
                 subs = obj.gWhillTopicSubs;
                 msgs = obj.gWhillMsgtypeSubs;
@@ -146,15 +148,15 @@ classdef ROS2CommManager < handle
                 qos = obj.qos_profile;
             end
             whillSubs = ros2subscriber(obj.node, ...
-                subs{vtype}, ...
-                msgs{vtype}, ...
+                subs{obj.vehicleType}, ...
+                msgs{obj.vehicleType}, ...
                 "Reliability",qos.Reliability, ...
                 "Durability",qos.Durability, ...
                 "History",qos.History, ...
                 "Depth",qos.Depth);
         end
 
-        function [whillPubs,msg] = genWhillPubs(obj, vtype)
+        function [whillPubs,msg] = genWhillPubs(obj)
             if obj.mode == 2
                 pubs = obj.gWhillTopicPubs;
                 msgs = obj.gWhillMsgtypePubs;
@@ -165,8 +167,8 @@ classdef ROS2CommManager < handle
                 qos = obj.qos_profile;
             end
             whillPubs = ros2publisher(obj.node, ...
-                pubs{vtype}, ...
-                msgs{vtype}, ...
+                pubs{obj.vehicleType}, ...
+                msgs{obj.vehicleType}, ...
                 "Reliability",qos.Reliability, ...
                 "Durability",qos.Durability, ...
                 "History",qos.History, ...
