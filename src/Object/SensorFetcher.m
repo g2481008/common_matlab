@@ -15,9 +15,9 @@ classdef SensorFetcher < handle
             % subscriberからセンサ値を取得
             % Plantには自己位置を追加予定
             doProcessing = 0;
-            data = struct("LIDAR",[],"GNSS",[],"CAMERA",[],"SelfPos",[]); % selfPos削除予定
-            Plant = struct("X",[],"Y",[],"Z",[], ...
-                "Roll",[],"Pitch",[],"Yaw",[],"odom",[]);
+            data = struct("LIDAR",[],"GNSS",[],"CAMERA",[]);
+            Plant = struct("X",[.0],"Y",[.0],"Z",[.0], ...
+                "Roll",[.0],"Pitch",[.0],"Yaw",[.0],"odom",[.0]);
             if obj.mode == 1
                 return;
             end
