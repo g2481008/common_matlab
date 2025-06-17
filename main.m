@@ -27,12 +27,12 @@ vehicleType = 1; % 1:CR, 2:CR2
 sensor(1) = true; % LiDAR
 sensor(2) = false; % GNSS
 sensor(3) = false; % Camera
-sensor(4) = true; % SLAM/Localization
+sensor(4) = false; % SLAM/Localization
 base_sensor = 1; % Standard sensor you use mainly. No standard:0, LiDAR:1, GNSS:2, Camera:3
 
 ts = 0.1; % System execution frequency [s]
 
-mode = 2; % 1: Offline (No communicate), 2:Gazebo simulation(ROS2), 3: Experiment(ROS2)
+mode = 3; % 1: Offline (No communicate), 2:Gazebo simulation(ROS2), 3: Experiment(ROS2)
 if mode == 1
     OfflinePath = "/home/student/Program/matlab_common/data/20250613/20250613_171110/userLocal.mat"; % Mat file
 else
@@ -42,7 +42,7 @@ end
 isParalell = false; % 非同期処理
 isMultiPC = false; % 推定と制御を2台PCで分散処理 (isParalell = 1)
 
-RID = 17; % ROS Domain ID
+RID = 11; % ROS Domain ID
 
 
 Timer = TimeTracker();
@@ -58,7 +58,7 @@ obj.DL = DataLogger(Datadir,"Estimate");
 obj.mainLoop();
 
 %%
-plotResult(Datadir,1)
+plotResult(Datadir,1,mode)
 
 function plotResult(folderPath,keepAllSequences,mode)
     if mode ~= 1
