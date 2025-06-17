@@ -39,8 +39,8 @@ else
     OfflinePath = [];
 end
 
-isParalell = false; % 非同期処理
-isMultiPC = false; % 推定と制御を2台PCで分散処理 (isParalell = 1)
+isParalell = true; % 非同期処理
+% isMultiPC = false; % 推定と制御を2台PCで分散処理 (isParalell = 1)
 
 RID = 11; % ROS Domain ID
 

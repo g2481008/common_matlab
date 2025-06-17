@@ -65,52 +65,58 @@ classdef wheelchairObj < handle
                 
                 % ROS2 TOPIC Configuration
                 if isempty(node) || ~isvalid(node)
-                    disp("Establishing ROS2 Node...")
+                    disp("Establishing ROS2 Node...\n")
                     rosshutdown
                     pause(5)
                     node = ros2node("matlab",obj.RID);
                 end
-                obj.ros2comm = ROS2CommManager(node,obj.vehicleType,obj.mode);
+                obj.ros2comm = ROS2CommManager(node,obj.vehicleType,obj.mode,obj.sensorIdx);
             else
                 node = [];
             end
             switch obj.mode
-                case 1 % Offline (No sensor, Use matlab only)
-                    disp("Loading mat file...")
+                case 1 % Offline (No sensor, Use matlab only)                    
+                    if obj.isParalell
+                        warning("hoge")
+                    end
+                    if obj.isMultiPC
+                        warning("hoge")
+                    end
+                    % disp("Loading mat file...")
                     % Umat = load(obj.OfflinePath);
                     sensorSubs = [];
                     whillSubs = [];
                 case 2 % Gazebo ros2 % Shared memory
                     disp("Creating Publisher/Subscriber for Gazebo...")
+                    if obj.isMultiPC
+                        warning("No compatible in Gazebo mode: isMultiPC=ture\n")
+                    end
                     setenv('RMW_IMPLEMENTATION','rmw_cyclonedds_cpp')
                     setenv("FASTDDS_BUILTIN_TRANSPORTS","UDPv4") % Avoid SHM communication
                     setenv("ROS_LOCALHOST_ONLY","1")
-                    sensorSubs = obj.ros2comm.genSensorSubs(obj.sensorIdx);
-                    whillSubs = obj.ros2comm.genWhillSubs(obj.vehicleType);
+                    sensorSubs = obj.ros2comm.genSensorSubs();
+                    whillSubs = obj.ros2comm.genWhillSubs();
                     %-----------------一時的に追加．デバッグ終了後は削除------------
-                    [whillPubs,cmdvel_msg] = obj.ros2comm.genWhillPubs(obj.vehicleType);
-                    %---------------------------------------------
-            
+                    [whillPubs,cmdvel_msg] = obj.ros2comm.genWhillPubs();
+                    %---------------------------------------------                           
                 case 3 % EXP ros2
-                    disp("Creating Publisher/Subscriber...")
-                    setenv('RMW_IMPLEMENTATION','rmw_fastrtps_cpp')
-                    setenv("FASTDDS_BUILTIN_TRANSPORTS","UDPv4") % Avoid SHM communication
-                    setenv("ROS_LOCALHOST_ONLY","0")
-                    if obj.isParalell && obj.isMultiPC % EstとCtrl間にROS2使用(PC2台以上使用限定) 
-                        sensorSubs = obj.ros2comm.genSensorSubs(obj.sensorIdx);
-                        whillSubs = obj.ros2comm.genWhillSubs(obj.vehicleType);
-                        [pubs,msgs,EstVarName] = obj.ros2comm.genEstimatorPubs(sendvartype,obj.mySaveFileName);
-
-                    elseif obj.isParalell && ~obj.isMultiPC % Shared memory
-
-                        
-                        
-                        
-
+                  disp("Creating Publisher/Subscriber...\n")
+                  setenv('RMW_IMPLEMENTATION','rmw_fastrtps_cpp')
+                  setenv("FASTDDS_BUILTIN_TRANSPORTS","UDPv4") % Avoid SHM communication
+                  setenv("ROS_LOCALHOST_ONLY","0")
+                    if obj.isParalell                        
+                        sensorSubs = obj.ros2comm.genSensorSubs();
+                        whillSubs = obj.ros2comm.genWhillSubs();
+                        [whillPubs,cmdvel_msg] = obj.ros2comm.genWhillPubs();
+                        if obj.isMultiPC % EstとCtrl間にROS2使用(PC2台以上使用限定)
+                            [pubs,msgs,EstVarName] = obj.ros2comm.genEstimatorPubs(sendvartype,obj.mySaveFileName);                            
+                        end
                     elseif ~obj.isParalell && ~obj.isMultiPC % Direct exec.(Old matlab program flow)
-                        sensorSubs = obj.ros2comm.genSensorSubs(obj.sensorIdx);
-                        whillSubs = obj.ros2comm.genWhillSubs(obj.vehicleType);
+                        sensorSubs = obj.ros2comm.genSensorSubs();
+                        whillSubs = obj.ros2comm.genWhillSubs();
 
+                    else
+                        error("Invalid variable: isParalell, isMultiPC")
                     end
                         
                     
@@ -147,6 +153,11 @@ classdef wheelchairObj < handle
 
                 % Get sensor data
                 [sensorData, Plant] = obj.SF.getSensorData(obj.sensorIdx,sensorSubs,whillSubs,obj.vehicleType,obj.SelfEstPos);
+                
+                
+                % Write sensor data in SHM for Estimator
+                    
+                % Read from Controller SHM 
 
                 % Estimator
                 if obj.nostd || ~isempty(sensorData.(obj.standard)) || obj.mode == 1
@@ -202,6 +213,14 @@ classdef wheelchairObj < handle
             legend({'Mean','Whole time'})
             
             
+        end
+        function systemExec(obj)
+            % ここでモードによる処理を分ける
+
+            
+
+
+
         end
     end
 
