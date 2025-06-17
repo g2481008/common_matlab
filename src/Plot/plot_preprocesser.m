@@ -40,8 +40,13 @@ function plot_preprocesser(folderPath,keepAllSequences)
         EstResult.(BaseName{10})(n,:) = Estimate{n,1}.Plant.odom;
         
         for m = 1:numAllEstVar-numBase
-            % User difined data
-            EstResult.(udVarName{m}){n,1} = Estimate{n,1}.(udVarName{m});
+            try
+                % User difined data
+                EstResult.(udVarName{m}){n,1} = Estimate{n,1}.(udVarName{m});
+            catch
+                EstResult.(udVarName{m}){n,1} = [];
+            end
+                
         end
         EstResult.sequence(n,1) = Estimate{n,1}.send.sequence;
         seq_Est(n) = Estimate{n,1}.send.sequence;

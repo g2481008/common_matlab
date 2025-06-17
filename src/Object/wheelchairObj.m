@@ -87,28 +87,33 @@ classdef wheelchairObj < handle
                     sensorSubs = [];
                     whillSubs = [];
                 case 2 % Gazebo ros2 % Shared memory
-                    disp("Creating Publisher/Subscriber for Gazebo...\n")
+                    disp("Creating Publisher/Subscriber for Gazebo...")
                     if obj.isMultiPC
                         warning("No compatible in Gazebo mode: isMultiPC=ture\n")
-                    end                    
+                    end
+                    setenv('RMW_IMPLEMENTATION','rmw_cyclonedds_cpp')
                     setenv("FASTDDS_BUILTIN_TRANSPORTS","UDPv4") % Avoid SHM communication
                     setenv("ROS_LOCALHOST_ONLY","1")
                     sensorSubs = obj.ros2comm.genSensorSubs();
                     whillSubs = obj.ros2comm.genWhillSubs();
-                    [whillPubs,cmdvel_msg] = obj.ros2comm.genWhillPubs();            
+                    %-----------------一時的に追加．デバッグ終了後は削除------------
+                    [whillPubs,cmdvel_msg] = obj.ros2comm.genWhillPubs();
+                    %---------------------------------------------                           
                 case 3 % EXP ros2
-                    if obj.isParalell
-                        disp("Creating Publisher/Subscriber...\n")
+                  disp("Creating Publisher/Subscriber...\n")
+                  setenv('RMW_IMPLEMENTATION','rmw_fastrtps_cpp')
+                  setenv("FASTDDS_BUILTIN_TRANSPORTS","UDPv4") % Avoid SHM communication
+                  setenv("ROS_LOCALHOST_ONLY","0")
+                    if obj.isParalell                        
                         sensorSubs = obj.ros2comm.genSensorSubs();
                         whillSubs = obj.ros2comm.genWhillSubs();
+                        [whillPubs,cmdvel_msg] = obj.ros2comm.genWhillPubs();
                         if obj.isMultiPC % EstとCtrl間にROS2使用(PC2台以上使用限定)
-                            [pubs,msgs,EstVarName] = obj.ros2comm.genEstimatorPubs(sendvartype,obj.mySaveFileName);
-                            [whillPubs,cmdvel_msg] = obj.ros2comm.genWhillPubs();
-                        else % Shared memory
-                            [whillPubs,cmdvel_msg] = obj.ros2comm.genWhillPubs();
+                            [pubs,msgs,EstVarName] = obj.ros2comm.genEstimatorPubs(sendvartype,obj.mySaveFileName);                            
                         end
-
                     elseif ~obj.isParalell && ~obj.isMultiPC % Direct exec.(Old matlab program flow)
+                        sensorSubs = obj.ros2comm.genSensorSubs();
+                        whillSubs = obj.ros2comm.genWhillSubs();
 
                     else
                         error("Invalid variable: isParalell, isMultiPC")
@@ -173,7 +178,7 @@ classdef wheelchairObj < handle
                 %---------------------------------------------------
                 
                 % ------一時的に追加．デバッグ終了後は削除------
-                if obj.mode ~= 1
+                if obj.mode ~= 1 && isprocessed
                     obj.ros2comm.send_msgs_toWhill(whillPubs,cmdvel_msg,result.V)
                 end
                 %--------------------------------------------
