@@ -193,8 +193,13 @@ classdef ROS2CommManager < handle
         end
 
         function send_msgs_toWhill(obj,pubs,msgs,V)
-            msgs.twist.linear.x = double(V(1));
-            msgs.twist.angular.z = double(V(2));
+            if obj.mode == 2
+                msgs.twist.linear.x = double(V(1));
+                msgs.twist.angular.z = double(V(2));
+            elseif obj.mode == 3
+                msgs.linear.x = double(V(1));
+                msgs.angular.z = double(V(2));
+            end
             send(pubs,msgs)
         end
 
