@@ -82,6 +82,7 @@ classdef wheelchairObj < handle
                     whillSubs = [];
                 case 2 % Gazebo ros2 % Shared memory
                     disp("Creating Publisher/Subscriber for Gazebo...")
+                    setenv('RMW_IMPLEMENTATION','rmw_cyclonedds_cpp')
                     setenv("FASTDDS_BUILTIN_TRANSPORTS","UDPv4") % Avoid SHM communication
                     setenv("ROS_LOCALHOST_ONLY","1")
                     sensorSubs = obj.ros2comm.genSensorSubs(obj.sensorIdx);
@@ -90,9 +91,12 @@ classdef wheelchairObj < handle
                     [whillPubs,cmdvel_msg] = obj.ros2comm.genWhillPubs(obj.vehicleType);
                     %---------------------------------------------
             
-                case 3 % EXP ros2                    
-                    if obj.isParalell && obj.isMultiPC % EstとCtrl間にROS2使用(PC2台以上使用限定)
-                        disp("Creating Publisher/Subscriber...")
+                case 3 % EXP ros2
+                    disp("Creating Publisher/Subscriber...")
+                    setenv('RMW_IMPLEMENTATION','rmw_fastrtps_cpp')
+                    setenv("FASTDDS_BUILTIN_TRANSPORTS","UDPv4") % Avoid SHM communication
+                    setenv("ROS_LOCALHOST_ONLY","0")
+                    if obj.isParalell && obj.isMultiPC % EstとCtrl間にROS2使用(PC2台以上使用限定) 
                         sensorSubs = obj.ros2comm.genSensorSubs(obj.sensorIdx);
                         whillSubs = obj.ros2comm.genWhillSubs(obj.vehicleType);
                         [pubs,msgs,EstVarName] = obj.ros2comm.genEstimatorPubs(sendvartype,obj.mySaveFileName);
@@ -104,6 +108,8 @@ classdef wheelchairObj < handle
                         
 
                     elseif ~obj.isParalell && ~obj.isMultiPC % Direct exec.(Old matlab program flow)
+                        sensorSubs = obj.ros2comm.genSensorSubs(obj.sensorIdx);
+                        whillSubs = obj.ros2comm.genWhillSubs(obj.vehicleType);
 
                     end
                         
@@ -161,7 +167,7 @@ classdef wheelchairObj < handle
                 %---------------------------------------------------
                 
                 % ------一時的に追加．デバッグ終了後は削除------
-                if obj.mode ~= 1
+                if obj.mode ~= 1 && isprocessed
                     obj.ros2comm.send_msgs_toWhill(whillPubs,cmdvel_msg,result.V)
                 end
                 %--------------------------------------------
