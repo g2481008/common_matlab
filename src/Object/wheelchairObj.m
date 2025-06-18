@@ -60,9 +60,17 @@ classdef wheelchairObj < handle
             sendvartype.sequence = 'uint32';
 
             % modeSpecifier(obj.mode)
+            if obj.mode == 2
+                setenv('RMW_IMPLEMENTATION','rmw_cyclonedds_cpp')
+                setenv("FASTDDS_BUILTIN_TRANSPORTS","UDPv4") % Avoid SHM communication
+                setenv("ROS_LOCALHOST_ONLY","1")
+            end
+            if obj.mode == 3
+                setenv('RMW_IMPLEMENTATION','rmw_fastrtps_cpp')
+                setenv("FASTDDS_BUILTIN_TRANSPORTS","UDPv4") % Avoid SHM communication
+                setenv("ROS_LOCALHOST_ONLY","0")
+            end
             if obj.mode > 1
-                % useROS = true;
-                
                 % ROS2 TOPIC Configuration
                 if isempty(node) || ~isvalid(node)
                     disp("Establishing ROS2 Node...\n")
@@ -91,9 +99,6 @@ classdef wheelchairObj < handle
                     if obj.isMultiPC
                         warning("No compatible in Gazebo mode: isMultiPC=ture\n")
                     end
-                    setenv('RMW_IMPLEMENTATION','rmw_cyclonedds_cpp')
-                    setenv("FASTDDS_BUILTIN_TRANSPORTS","UDPv4") % Avoid SHM communication
-                    setenv("ROS_LOCALHOST_ONLY","1")
                     sensorSubs = obj.ros2comm.genSensorSubs();
                     whillSubs = obj.ros2comm.genWhillSubs();
                     %-----------------一時的に追加．デバッグ終了後は削除------------
@@ -101,9 +106,6 @@ classdef wheelchairObj < handle
                     %---------------------------------------------                           
                 case 3 % EXP ros2
                   disp("Creating Publisher/Subscriber...\n")
-                  setenv('RMW_IMPLEMENTATION','rmw_fastrtps_cpp')
-                  setenv("FASTDDS_BUILTIN_TRANSPORTS","UDPv4") % Avoid SHM communication
-                  setenv("ROS_LOCALHOST_ONLY","0")
                     if obj.isParalell                        
                         sensorSubs = obj.ros2comm.genSensorSubs();
                         whillSubs = obj.ros2comm.genWhillSubs();
