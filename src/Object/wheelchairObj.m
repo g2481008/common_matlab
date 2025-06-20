@@ -73,7 +73,7 @@ classdef wheelchairObj < handle
             if obj.mode > 1
                 % ROS2 TOPIC Configuration
                 if isempty(node) || ~isvalid(node)
-                    disp("Establishing ROS2 Node...\n")
+                    disp("Establishing ROS2 Node...")
                     rosshutdown
                     pause(5)
                     node = ros2node("matlab",obj.RID);
@@ -97,7 +97,7 @@ classdef wheelchairObj < handle
                 case 2 % Gazebo ros2 % Shared memory
                     disp("Creating Publisher/Subscriber for Gazebo...")
                     if obj.isMultiPC
-                        warning("No compatible in Gazebo mode: isMultiPC=ture\n")
+                        warning("No compatible in Gazebo mode: isMultiPC=ture")
                     end
                     sensorSubs = obj.ros2comm.genSensorSubs();
                     whillSubs = obj.ros2comm.genWhillSubs();
@@ -105,7 +105,7 @@ classdef wheelchairObj < handle
                     [whillPubs,cmdvel_msg] = obj.ros2comm.genWhillPubs();
                     %---------------------------------------------                           
                 case 3 % EXP ros2
-                  disp("Creating Publisher/Subscriber...\n")
+                  disp("Creating Publisher/Subscriber...")
                     if obj.isParalell                        
                         sensorSubs = obj.ros2comm.genSensorSubs();
                         whillSubs = obj.ros2comm.genWhillSubs();
