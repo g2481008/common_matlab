@@ -180,7 +180,7 @@ classdef wheelchairObj < handle
                 %---------------------------------------------------
                 
                 % ------一時的に追加．デバッグ終了後は削除------
-                if obj.mode ~= 1 && isprocessed
+                if obj.mode ~= 1 && obj.isprocessed
                     obj.ros2comm.send_msgs_toWhill(whillPubs,cmdvel_msg,result.V)
                 end
                 %--------------------------------------------
