@@ -3,11 +3,6 @@ classdef SensorFetcher < handle
 
     properties
         mode
-        
-
-    end
-    properties (Access=private)
-        prevAngle
 
     end
 
@@ -20,13 +15,10 @@ classdef SensorFetcher < handle
             % subscriberからセンサ値を取得
             % Plantには自己位置を追加予定
             doProcessing = 0;
-            data = struct("LIDAR",[],"GNSS",[],"CAMERA",[]);
-            Plant = struct("X",[.0],"Y",[.0],"Z",[.0], ...
-                "Roll",[.0],"Pitch",[.0],"Yaw",[.0],"odom",[.0]);
-            if obj.mode == 1
-                return;
-            end
-            if ~sensorIdx(1) && sensorIdx(4) && obj.mode == 3
+            data = struct("LIDAR",[],"GNSS",[],"CAMERA",[],"SelfPos",[]); % selfPos削除予定
+            Plant = struct("X",[],"Y",[],"Z",[], ...
+                "Roll",[],"Pitch",[],"Yaw",[],"odom",[]);
+            if ~sensorIdx(1) && sensorIdx(4)
                 error("Localizer need to LiDAR. Please confirm LiDAR's sensor-index is true.")   
             end
             whillret = whillSubs.LatestMessage;
@@ -39,7 +31,7 @@ classdef SensorFetcher < handle
             if ~isempty(sensorSubs{3})
                 ret{3} = sensorSubs{3}.LatestMessage;
             end
-            if ~isempty(sensorSubs{4}) || obj.mode == 2
+            if ~isempty(sensorSubs{4})
                 ret{4} = sensorSubs{4}.LatestMessage;
             end
             if ~isempty(whillret)
@@ -77,27 +69,20 @@ classdef SensorFetcher < handle
                 data.CAMERA = ret{3};
                 doProcessing = 1;
             end
-            if (sensorIdx(4) || obj.mode==2) && ~isempty(ret{4})
+            if sensorIdx(4) && ~isempty(ret{4})
                 % temp = Localizer.main(rosReadXYZ(data.LIDAR));
                 % data.SelfPos = temp.Matching_pose.Translation;
                 Plant.X = ret{4}.position.x;
                 Plant.Y = ret{4}.position.y;
                 Plant.Z = ret{4}.position.z;
-                ang(1) = ret{4}.orientation.w; 
-                ang(2) = ret{4}.orientation.x;
-                ang(3) = ret{4}.orientation.y;
-                ang(4) = ret{4}.orientation.z;
+                ang(1) = ret{4}.orientation.x;
+                ang(2) = ret{4}.orientation.y;
+                ang(3) = ret{4}.orientation.z;
+                ang(4) = ret{4}.orientation.w;
                 eul = quat2eul(ang);
-                Plant.Yaw = eul(1); 
-                Plant.Pitch = eul(2); 
-                Plant.Roll = eul(3); 
-
-                if ~isempty(obj.prevAngle)
-                    Plant = AngleAdjustment(Plant,obj.prevAngle);
-                end
-                obj.prevAngle.Yaw = Plant.Yaw;
-                obj.prevAngle.Pitch = Plant.Pitch;
-                obj.prevAngle.Roll = Plant.Roll;
+                Plant.Yaw = eul(1);
+                Plant.Pitch = eul(2);
+                Plant.Roll = eul(3);
             end
             if doProcessing
                 data.CAMERA.processed_masks = camera_postProcess(data.CAMERA);

@@ -3,11 +3,6 @@ classdef SensorFetcher < handle
 
     properties
         mode
-        
-
-    end
-    properties (Access=private)
-        prevAngle
 
     end
 
@@ -83,21 +78,14 @@ classdef SensorFetcher < handle
                 Plant.X = ret{4}.position.x;
                 Plant.Y = ret{4}.position.y;
                 Plant.Z = ret{4}.position.z;
-                ang(1) = ret{4}.orientation.w; 
+                ang(1) = ret{4}.orientation.w;
                 ang(2) = ret{4}.orientation.x;
                 ang(3) = ret{4}.orientation.y;
                 ang(4) = ret{4}.orientation.z;
                 eul = quat2eul(ang);
-                Plant.Yaw = eul(1); 
-                Plant.Pitch = eul(2); 
-                Plant.Roll = eul(3); 
-
-                if ~isempty(obj.prevAngle)
-                    Plant = AngleAdjustment(Plant,obj.prevAngle);
-                end
-                obj.prevAngle.Yaw = Plant.Yaw;
-                obj.prevAngle.Pitch = Plant.Pitch;
-                obj.prevAngle.Roll = Plant.Roll;
+                Plant.Yaw = eul(1);
+                Plant.Pitch = eul(2);
+                Plant.Roll = eul(3);
             end
             if doProcessing
                 data.CAMERA.processed_masks = camera_postProcess(data.CAMERA);

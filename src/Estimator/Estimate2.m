@@ -60,8 +60,7 @@ classdef Estimate2 < handle
             end
             if ~isempty(sensordata.GNSS)
             end
-            if ~isempty(sensordata.SelfPos)
-            end
+            
 
             obj.Allxhat = zeros(4,5);
             
