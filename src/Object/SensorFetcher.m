@@ -96,7 +96,7 @@ classdef SensorFetcher < handle
                 tmpAngle.Roll = Plant.Roll;
 
                 if ~isempty(obj.prevAngle)
-                    Plant = AngleAdjustment(Plant,obj.prevAngle);
+                    Plant = AngleAdjstment(Plant,obj.prevAngle);
                 end
                 obj.prevAngle.Yaw = tmpAngle.Yaw;
                 obj.prevAngle.Pitch = tmpAngle.Pitch;
@@ -161,6 +161,31 @@ classdef SensorFetcher < handle
                 h = bufImg.getHeight;
                 mask = reshape(byteArr, [w, h])';                  % 転置して (h×w) に
             
+            end
+            function ret = AngleAdjstment(ret, Data)
+                while ret.Roll - Data.Roll > pi
+                   ret.Roll = ret.Roll - 2 * pi;
+                end
+            
+                while ret.Roll - Data.Roll <= -pi
+                   ret.Roll = ret.Roll + 2 * pi;
+                end
+            
+                while ret.Pitch - Data.Pitch > pi
+                   ret.Pitch = ret.Pitch - 2 * pi;
+                end
+            
+                while ret.Pitch - Data.Pitch <= -pi
+                   ret.Pitch = ret.Pitch + 2 * pi;
+                end
+            
+                while ret.Yaw - Data.Yaw > pi
+                   ret.Yaw = ret.Yaw - 2 * pi;
+                end
+            
+                while ret.Yaw - Data.Yaw <= -pi
+                   ret.Yaw = ret.Yaw + 2 * pi;
+                end
             end
             
         end
