@@ -1,12 +1,4 @@
 clc; clear; close all;
-%% 使用方法：
-% mainとは異なるMATLABセッションでexeControlを開く
-% exeControl⇒mainの順で実行
-
-% 推奨：実験前に一度実行することで処理速度が向上します
-
-
-
 %% Global configurations
 clc; close all; clear global; clear variables; warning('off','all');
 conf.pc = [ismac; isunix; ispc];
