@@ -80,17 +80,27 @@ classdef SensorFetcher < handle
             if (sensorIdx(4) || obj.mode==2) && ~isempty(ret{4})
                 % temp = Localizer.main(rosReadXYZ(data.LIDAR));
                 % data.SelfPos = temp.Matching_pose.Translation;
-                Plant.X = ret{4}.position.x;
-                Plant.Y = ret{4}.position.y;
-                Plant.Z = ret{4}.position.z;
-                ang(1) = ret{4}.orientation.w; 
-                ang(2) = ret{4}.orientation.x;
-                ang(3) = ret{4}.orientation.y;
-                ang(4) = ret{4}.orientation.z;
+                if obj.mode == 2
+                    Plant.X = ret{4}.position.x;
+                    Plant.Y = ret{4}.position.y;
+                    Plant.Z = ret{4}.position.z;
+                    ang(1) = ret{4}.orientation.w; 
+                    ang(2) = ret{4}.orientation.x;
+                    ang(3) = ret{4}.orientation.y;
+                    ang(4) = ret{4}.orientation.z;
+                elseif obj.mode == 3
+                    Plant.X = ret{4}.pose.position.x;
+                    Plant.Y = ret{4}.pose.position.y;
+                    Plant.Z = ret{4}.pose.position.z;
+                    ang(1) = ret{4}.pose.orientation.w; 
+                    ang(2) = ret{4}.pose.orientation.x;
+                    ang(3) = ret{4}.pose.orientation.y;
+                    ang(4) = ret{4}.pose.orientation.z;
+                end
                 eul = quat2eul(ang);
                 Plant.Yaw = eul(1); 
                 Plant.Pitch = eul(2); 
-                Plant.Roll = eul(3); 
+                Plant.Roll = eul(3);   
                 tmpAngle.Yaw = Plant.Yaw;
                 tmpAngle.Pitch = Plant.Pitch;
                 tmpAngle.Roll = Plant.Roll;

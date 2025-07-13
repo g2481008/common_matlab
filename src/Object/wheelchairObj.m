@@ -116,7 +116,7 @@ classdef wheelchairObj < handle
                     elseif ~obj.isParalell && ~obj.isMultiPC % Direct exec.(Old matlab program flow)
                         sensorSubs = obj.ros2comm.genSensorSubs();
                         whillSubs = obj.ros2comm.genWhillSubs();
-
+                        [whillPubs,cmdvel_msg] = obj.ros2comm.genWhillPubs();
                     else
                         error("Invalid variable: isParalell, isMultiPC")
                     end
